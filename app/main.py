@@ -3,18 +3,18 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 
-from app.core.config import settings
-from app.api.endpoints import auth, users, predictions
-from app.db.base import SessionLocal
-from app.db import init_db
+from core.config import settings
+from api.endpoints import auth, users, predictions
+from db.base import SessionLocal
+from db import init_db
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -66,7 +66,7 @@ async def health_check():
     try:
         db = SessionLocal()
 
-        db.execute("SELECT 1")
+        db.execute(text('SELECT 1'))
         db_status = "healthy"
     except Exception as e:
         logger.error(f"Ошибка проверки соединения с БД: {e}")
@@ -93,3 +93,5 @@ async def generic_exception_handler(request: Request, exc: Exception):
         status_code=500,
         content={"detail": "Внутренная ошибка сервера"},
     )
+
+

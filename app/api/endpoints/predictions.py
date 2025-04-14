@@ -1,16 +1,18 @@
-from typing import Annotated, Any, List
+from typing import Annotated, List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+import pika
+import json
 
-from app.api import deps
-from app.db.models.user import User as UserModel
+from api import deps
+from db.models.user import User as UserModel
 
-from app.schemas import prediction as prediction_schema
-from app.crud import crud_user, crud_prediction, crud_transaction
-from app.core.config import settings
+from schemas import prediction as prediction_schema
+from crud import crud_user, crud_prediction, crud_transaction
+from core.config import settings
 
 router = APIRouter()
-
 
 @router.post(
     "/",
@@ -59,6 +61,9 @@ def create_prediction_request_endpoint(
 
         db.refresh(db_prediction_request)
 
+        # отправка задачи в RabbitMQ
+        send_task_to_rabbitmq(db_prediction_request.id, current_user.id)
+
         return db_prediction_request
 
     except Exception as e:
@@ -71,6 +76,14 @@ def create_prediction_request_endpoint(
             detail="Не удалось создать запрос на предсказание."
         )
 
+def send_task_to_rabbitmq(prediction_id, user_id):
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+    channel = connection.channel()
+    channel.queue_declare(queue='ml_tasks')
+
+    task = {'prediction_id': prediction_id, 'user_id': user_id}
+    channel.basic_publish(exchange='', routing_key='ml_tasks', body=json.dumps(task))
+    connection.close()
 
 @router.get("/{prediction_id}", response_model=prediction_schema.PredictionRequest)
 def read_prediction_request(
@@ -94,7 +107,6 @@ def read_prediction_request(
         )
 
     return db_prediction
-
 
 @router.get("/", response_model=List[prediction_schema.PredictionRequest])
 def read_prediction_requests(

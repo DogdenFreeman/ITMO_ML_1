@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean
 from sqlalchemy.orm import relationship
-from app.db.base import Base
+from db.base import Base
 
 class User(Base):
     __tablename__ = 'users'
@@ -13,4 +13,4 @@ class User(Base):
     is_superuser = Column(Boolean(), default=False)
 
     transactions = relationship("Transaction", back_populates="owner")
-    predictions = relationship("Prediction", back_populates="owner")
+    predictions = relationship("PredictionRequest", back_populates="owner")

@@ -2,10 +2,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import update as sqlalchemy_update
 from typing import List, Optional
 
-from app.db.models.user import User
-from app.db.models.transaction import Transaction
-from app.schemas.user import UserCreate
-from app.core.security import get_password_hash, verify_password
+from db.models.user import User
+from db.models.transaction import Transaction
+from schemas.user import UserCreate
+from core.security import get_password_hash, verify_password
 import datetime
 import logging
 

@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
-from app.db import base
-from app.db.models.user import User
-from app.core.config import settings
-from app.core.security import get_password_hash
+from db import base
+from db.models.user import User
+from core.config import settings
+from core.security import get_password_hash
 import logging
 
 logger = logging.getLogger(__name__)

@@ -12,20 +12,20 @@ class Settings(BaseSettings):
 
     POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "database")
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "user_test")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "default_password")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "asd123")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "db_test")
     DATABASE_URL: str | None = None
 
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "a_very_secret_key_that_should_be_changed")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "secret123")
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
     PASSWORD_HASH_SCHEMES: List[str] = ["bcrypt"]
 
     FIRST_SUPERUSER_EMAIL: str = os.getenv("FIRST_SUPERUSER_EMAIL", "admin@example.com")
-    FIRST_SUPERUSER_PASSWORD: str = os.getenv("FIRST_SUPERUSER_PASSWORD", "changeme")
+    FIRST_SUPERUSER_PASSWORD: str = os.getenv("FIRST_SUPERUSER_PASSWORD", "asd123")
     DEMO_USER_EMAIL: str = os.getenv("DEMO_USER_EMAIL", "student@example.com")
-    DEMO_USER_PASSWORD: str = os.getenv("DEMO_USER_PASSWORD", "testpass")
+    DEMO_USER_PASSWORD: str = os.getenv("DEMO_USER_PASSWORD", "asd123")
 
     PREDICTION_COST: float = 1.0
 

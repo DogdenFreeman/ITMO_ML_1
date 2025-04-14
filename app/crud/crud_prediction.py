@@ -2,8 +2,8 @@ from sqlalchemy.orm import Session
 from typing import List, Optional, Dict, Any
 import datetime
 
-from app.db.models.prediction_request import PredictionRequest
-from app.schemas.prediction import PredictionCreate
+from db.models.prediction_request import PredictionRequest
+from schemas.prediction import PredictionCreate
 
 
 def get_prediction_by_id(db: Session, prediction_id: int) -> Optional[PredictionRequest]:
