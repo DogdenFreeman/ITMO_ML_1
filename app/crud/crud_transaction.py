@@ -1,8 +1,8 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
-from app.db.models.transaction import Transaction
-from app.db.models.user import User
+from db.models.transaction import Transaction
+from db.models.user import User
 
 
 def get_transaction_by_id(db: Session, transaction_id: int) -> Optional[Transaction]:

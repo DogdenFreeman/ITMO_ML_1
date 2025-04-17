@@ -2,12 +2,12 @@ from typing import List, Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.api import deps
-from app.db.models.user import User as UserModel
-from app.schemas import user as user_schema
-from app.schemas import transaction as transaction_schema
-from app.schemas import prediction as prediction_schema
-from app.crud import crud_user, crud_transaction, crud_prediction
+from api import deps
+from db.models.user import User as UserModel
+from schemas import user as user_schema
+from schemas import transaction as transaction_schema
+from schemas import prediction as prediction_schema
+from crud import crud_user, crud_transaction, crud_prediction
 
 router = APIRouter()
 

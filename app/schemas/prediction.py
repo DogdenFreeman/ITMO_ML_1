@@ -1,8 +1,9 @@
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import datetime
 
-# для примера
+
+
 class PredictionInputData(BaseModel):
     qr_code_content: Optional[str] = None
     feature1: float

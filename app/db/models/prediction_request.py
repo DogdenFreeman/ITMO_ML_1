@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Float
 from sqlalchemy.orm import relationship
-from app.db.base import Base
+from db.base import Base
 import datetime
+
 
 class PredictionRequest(Base):
     __tablename__ = 'predictions'
