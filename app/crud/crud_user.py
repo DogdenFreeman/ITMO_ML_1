@@ -74,7 +74,6 @@ def update_balance(db: Session, user: User, amount: float, transaction_type: str
         )
         db.add(transaction)
 
-        db.commit()
         db.refresh(user)
         logger.info(
             f"Баланс пользователя {user.id} ({user.email}) обновлен: {user.balance:.2f}. Операция: {transaction_type} ({amount:.2f}).")

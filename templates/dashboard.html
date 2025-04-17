@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Личный кабинет</title>
+</head>
+<body>
+    <h1>Личный кабинет</h1>
+    <p>Баланс: {{ user.balance }} кредитов</p>
+    <h2>Пополнить баланс</h2>
+    <form action="/topup" method="post">
+        <div>
+            <label for="amount">Сумма:</label>
+            <input type="number" id="amount" name="amount" min="1" required>
+        </div>
+        <button type="submit">Пополнить</button>
+    </form>
+    <h2>Запрос к ML сервису</h2>
+    <form action="/predict" method="post">
+        <div>
+            <label for="feature1">Признак 1:</label>
+            <input type="number" id="feature1" name="feature1" required>
+        </div>
+        <div>
+            <label for="feature2">Признак 2:</label>
+            <input type="text" id="feature2" name="feature2" required>
+        </div>
+        <button type="submit">Выполнить предсказание (стоимость: {{ prediction_cost }})</button>
+    </form>
+    <h2>История предсказаний</h2>
+    {% if predictions %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата создания</th>
+                <th>Статус</th>
+                <th>Результат</th>
+                <th>Списано</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prediction in predictions %}
+            <tr>
+                <td>{{ prediction.id }}</td>
+                <td>{{ prediction.timestamp_created }}</td>
+                <td>{{ prediction.status }}</td>
+                <td>{{ prediction.result }}</td>
+                <td>{{ prediction.cost }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Нет истории предсказаний.</p>
+    {% endif %}
+    <h2>История транзакций</h2>
+    {% if transactions %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Тип</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.id }}</td>
+                <td>{{ transaction.timestamp }}</td>
+                <td>{{ transaction.transaction_type }}</td>
+                <td>{{ transaction.amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Нет истории транзакций.</p>
+    {% endif %}
+    <p><a href="/logout">Выйти</a></p>
+</body>
+</html>

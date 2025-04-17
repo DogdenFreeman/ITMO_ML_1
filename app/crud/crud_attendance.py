@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from typing import List, Optional
 
 from db.models.attendance import Attendance
-from schemas.attendance import AttendanceCreate
+from schemas.attendance import AttendanceBase as AttendanceCreate
 
 def get_attendance(db: Session, attendance_id: int) -> Optional[Attendance]:
     return db.query(Attendance).filter(Attendance.id == attendance_id).first()
