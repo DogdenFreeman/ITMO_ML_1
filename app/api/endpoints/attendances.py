@@ -16,7 +16,7 @@ def read_attendances(db: Annotated[Session, Depends(deps.get_db)]):
     return crud_attendance.get_attendances(db)
 
 @router.post("/", response_model=attendance_schema.Attendance)
-def create_attendance(db: Annotated[Session, Depends(deps.get_db)], attendance: attendance_schema.AttendanceCreate):
+def create_attendance(db: Annotated[Session, Depends(deps.get_db)], attendance: attendance_schema.AttendanceBase):
     return crud_attendance.create_attendance(db, attendance)
 
 @router.get("/history", response_model=history_schema.AttendanceHistory)

@@ -1,3 +1,4 @@
+import os
 import pika
 import json
 import logging
@@ -7,15 +8,18 @@ from sqlalchemy.orm import sessionmaker
 from db.models.prediction_request import PredictionRequest
 from db.models.attendance import Attendance
 
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_SERVER = os.getenv("POSTGRES_SERVER")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
 
 rabbitmq_host = 'rabbitmq'
 rabbitmq_queue = 'ml_tasks'
 
 
-DATABASE_URL = "postgresql+psycopg2://user_test:changeme_db_password@database/db_test"
+DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
