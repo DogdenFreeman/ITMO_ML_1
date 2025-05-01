@@ -18,7 +18,7 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(
-        subject: Union[str, Any], expires_delta: timedelta = None
+    subject: Union[str, Any], expires_delta: timedelta = None
 ) -> str:
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -29,6 +29,7 @@ def create_access_token(
     to_encode = {"exp": expire, "sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+
 
 def decode_access_token(token: str) -> dict | None:
     try:

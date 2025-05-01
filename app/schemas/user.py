@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 
 
 class UserCreate(BaseModel):
@@ -13,9 +13,10 @@ class User(BaseModel):
     is_active: bool
     is_superuser: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BalanceUpdate(BaseModel):
     amount: float
+
+    model_config = ConfigDict(from_attributes=True)

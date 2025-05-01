@@ -1,33 +1,41 @@
 from typing import List, Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+import logging
 
 from api import deps
-from db.models.user import User as UserModel
-from schemas import user as user_schema
-from schemas import transaction as transaction_schema
-from schemas import prediction as prediction_schema
+from db.models.user import User
+from schemas.user import User, BalanceUpdate
+from schemas.transaction import Transaction
+from schemas.prediction import PredictionRequest
+
 from crud import crud_user, crud_transaction, crud_prediction
+
+logger = logging.getLogger(__name__)
+
 
 router = APIRouter()
 
 
-@router.get("/me", response_model=user_schema.User)
+@router.get("/me", response_model=User)
 def read_users_me(
-
-        current_user: Annotated[UserModel, Depends(deps.get_current_user)]
+    current_user: Annotated[User, Depends(deps.get_current_user)]
 ):
     return current_user
 
 
-@router.post("/me/balance/topup", response_model=user_schema.User)
+@router.post("/me/balance/topup", response_model=User)
 def topup_user_balance(
-        *,
-        db: Annotated[Session, Depends(deps.get_db)],
-        balance_in: user_schema.BalanceUpdate,
-        current_user: Annotated[UserModel, Depends(deps.get_current_user)],
+    *,
+    db: Annotated[Session, Depends(deps.get_db)],
+    balance_in: BalanceUpdate,
+    current_user: Annotated[User, Depends(deps.get_current_user)],
 ):
     if balance_in.amount <= 0:
+        logger.warning(
+            f"Пользователь {current_user.id} ({current_user.email}) попытался пополнить баланс на отрицательную/нулевую сумму: {balance_in.amount}."
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Сумма пополнения должна быть положительной."
@@ -41,6 +49,10 @@ def topup_user_balance(
     )
 
     if not updated_user:
+        logger.error(
+            f"Не удалось обновить баланс пользователя {current_user.id} ({current_user.email}) "
+            f"при пополнении на {balance_in.amount}.", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось обновить баланс."
@@ -49,13 +61,13 @@ def topup_user_balance(
     return updated_user
 
 
-@router.get("/me/history/transactions", response_model=List[transaction_schema.Transaction])
+@router.get("/me/history/transactions", response_model=List[Transaction])
 def read_transaction_history(
-        *,
-        db: Annotated[Session, Depends(deps.get_db)],
-        current_user: Annotated[UserModel, Depends(deps.get_current_user)],
-        skip: int = 0,
-        limit: int = 100
+    *,
+    db: Annotated[Session, Depends(deps.get_db)],
+    current_user: Annotated[User, Depends(deps.get_current_user)],
+    skip: int = 0,
+    limit: int = 100
 ):
     transactions = crud_transaction.get_transactions_by_user(
         db, user_id=current_user.id, skip=skip, limit=limit
@@ -63,13 +75,13 @@ def read_transaction_history(
     return transactions
 
 
-@router.get("/me/history/predictions", response_model=List[prediction_schema.PredictionRequest])
+@router.get("/me/history/predictions", response_model=List[PredictionRequest])
 def read_prediction_history(
-        *,
-        db: Annotated[Session, Depends(deps.get_db)],
-        current_user: Annotated[UserModel, Depends(deps.get_current_user)],
-        skip: int = 0,
-        limit: int = 100
+    *,
+    db: Annotated[Session, Depends(deps.get_db)],
+    current_user: Annotated[User, Depends(deps.get_current_user)],
+    skip: int = 0,
+    limit: int = 100
 ):
     predictions = crud_prediction.get_prediction_history_by_user(
         db, user_id=current_user.id, skip=skip, limit=limit
@@ -77,31 +89,33 @@ def read_prediction_history(
     return predictions
 
 
-@router.get("/", response_model=List[user_schema.User], dependencies=[Depends(deps.get_current_active_superuser)])
+@router.get("/", response_model=List[User], dependencies=[Depends(deps.get_current_active_superuser)])
 def read_users(
-        db: Annotated[Session, Depends(deps.get_db)],
-        skip: int = 0,
-        limit: int = 100,
-
+    db: Annotated[Session, Depends(deps.get_db)],
+    skip: int = 0,
+    limit: int = 100,
 ):
     users = crud_user.get_users(db, skip=skip, limit=limit)
     return users
 
 
-@router.post("/{user_id}/admin/credit", response_model=user_schema.User,
+@router.post("/{user_id}/admin/credit", response_model=User,
              dependencies=[Depends(deps.get_current_active_superuser)])
 def admin_credit_user_balance(
-        *,
-        db: Annotated[Session, Depends(deps.get_db)],
-        user_id: int,
-        balance_in: user_schema.BalanceUpdate,
-
+    *,
+    db: Annotated[Session, Depends(deps.get_db)],
+    user_id: int,
+    balance_in: BalanceUpdate,
 ):
     user_to_credit = crud_user.get_user(db, user_id=user_id)
     if not user_to_credit:
+        logger.warning(f"Администратор попытался пополнить баланс несуществующего пользователя с ID {user_id}.")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Пользователь не найден.")
 
     if balance_in.amount <= 0:
+        logger.warning(
+            f"Администратор попытался пополнить баланс пользователя {user_id} на отрицательную/нулевую сумму: {balance_in.amount}."
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Сумма для пополнения должна быть положительной."
@@ -115,8 +129,12 @@ def admin_credit_user_balance(
     )
 
     if not updated_user:
+        logger.error(
+            f"Не удалось обновить баланс пользователя {user_id} при адminском пополнении на {balance_in.amount}.", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось обновить баланс пользователя."
         )
+
     return updated_user

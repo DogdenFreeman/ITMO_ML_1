@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 import datetime
 
@@ -14,5 +14,4 @@ class Transaction(TransactionBase):
     timestamp: datetime.datetime
     prediction_request_id: Optional[int] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

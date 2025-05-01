@@ -1,4 +1,5 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -7,16 +8,17 @@ from api import deps
 from core import security
 from schemas.token import Token
 from crud import crud_user
-from schemas.user import UserCreate, User as UserSchema
+from schemas.user import UserCreate, User
+
 
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
 def register_user(
-        *,
-        db: Annotated[Session, Depends(deps.get_db)],
-        user_in: UserCreate,
+    *,
+    db: Annotated[Session, Depends(deps.get_db)],
+    user_in: UserCreate,
 ):
     user = crud_user.get_user_by_email(db, email=user_in.email)
     if user:
@@ -31,9 +33,8 @@ def register_user(
 
 @router.post("/login", response_model=Token)
 def login_for_access_token(
-
-        db: Annotated[Session, Depends(deps.get_db)],
-        form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
+    db: Annotated[Session, Depends(deps.get_db)],
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
     user = crud_user.get_user_by_email(db, email=form_data.username)
 
@@ -44,7 +45,7 @@ def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    elif not user.is_active:
+    if not user.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Неактивный пользователь")
 
     access_token = security.create_access_token(

@@ -27,16 +27,16 @@ class Settings(BaseSettings):
     DEMO_USER_EMAIL: str = os.getenv("DEMO_USER_EMAIL", "student@example.com")
     DEMO_USER_PASSWORD: str = os.getenv("DEMO_USER_PASSWORD", "asd123")
 
-    PREDICTION_COST: float = 1.0
+    PREDICTION_COST: float = float(os.getenv("PREDICTION_COST", "1.0"))
 
     class Config:
         case_sensitive = True
         env_file = '.env'
         env_file_encoding = 'utf-8'
 
+
     def __init__(self, **values):
         super().__init__(**values)
-
         self.DATABASE_URL = f"postgresql+psycopg2://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
 

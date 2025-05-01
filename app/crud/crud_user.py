@@ -1,13 +1,13 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import update as sqlalchemy_update
 from typing import List, Optional
+import datetime
+import logging
 
 from db.models.user import User
 from db.models.transaction import Transaction
 from schemas.user import UserCreate
-from core.security import get_password_hash, verify_password
-import datetime
-import logging
+from core.security import get_password_hash
+
 
 logger = logging.getLogger(__name__)
 
@@ -30,15 +30,19 @@ def create_user(db: Session, user: UserCreate) -> User:
         email=user.email,
         hashed_password=hashed_password,
         balance=0.0,
-        role="student",
         is_active=True,
         is_superuser=False
     )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    logger.info(f"Создан пользователь: {db_user.email} (ID: {db_user.id})")
-    return db_user
+    try:
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        logger.info(f"Создан пользователь: {db_user.email} (ID: {db_user.id})")
+        return db_user
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Ошибка при создании пользователя {user.email}: {e}", exc_info=True)
+        raise e
 
 
 def update_balance(db: Session, user: User, amount: float, transaction_type: str,
@@ -47,24 +51,12 @@ def update_balance(db: Session, user: User, amount: float, transaction_type: str
 
     if amount < 0 and new_balance < 0:
         logger.warning(
-            f"Попытка списания {abs(amount)} у пользователя {user.id} ({user.email}). Баланс: {user.balance}. Недостаточно средств.")
+            f"Попытка списания {abs(amount):.2f} у пользователя {user.id} ({user.email}). "
+            f"Текущий баланс: {user.balance:.2f}. Недостаточно средств. Операция '{transaction_type}' отменена."
+        )
         return None
 
     try:
-
-        stmt = (
-            sqlalchemy_update(User)
-            .where(User.id == user.id)
-            .values(balance=new_balance)
-            .execution_options(synchronize_session="fetch")
-        )
-        result = db.execute(stmt)
-
-        if result.rowcount == 0:
-            logger.error(f"Не удалось обновить баланс для пользователя {user.id}. Пользователь не найден?")
-            db.rollback()
-            return None
-
         transaction = Transaction(
             user_id=user.id,
             amount=amount,
@@ -74,12 +66,22 @@ def update_balance(db: Session, user: User, amount: float, transaction_type: str
         )
         db.add(transaction)
 
+        user.balance = new_balance
+
+        db.commit()
+
         db.refresh(user)
+
         logger.info(
-            f"Баланс пользователя {user.id} ({user.email}) обновлен: {user.balance:.2f}. Операция: {transaction_type} ({amount:.2f}).")
+            f"Баланс пользователя {user.id} ({user.email}) успешно обновлен. Новое значение: {user.balance:.2f}. "
+            f"Операция: '{transaction_type}' ({amount:+.2f}). Создана транзакция ID: {transaction.id}."
+        )
         return user
 
     except Exception as e:
         db.rollback()
-        logger.error(f"Ошибка при обновлении баланса для пользователя {user.id}: {e}", exc_info=True)
+        logger.error(
+            f"Ошибка при обновлении баланса для пользователя {user.id} ({user.email}) "
+            f"для операции '{transaction_type}' ({amount:+.2f}): {e}", exc_info=True
+        )
         return None

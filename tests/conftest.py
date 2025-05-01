@@ -7,14 +7,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from dotenv import load_dotenv
 
-load_dotenv(dotenv_path=".env.test")
 
+load_dotenv(dotenv_path=".env.test")
 
 TEST_POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")
 TEST_POSTGRES_USER = os.getenv("POSTGRES_USER")
 TEST_POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 TEST_POSTGRES_DB = os.getenv("POSTGRES_DB")
-
 
 SQLALCHEMY_DATABASE_URL_TEST = (
     f"postgresql+psycopg2://{TEST_POSTGRES_USER}:{TEST_POSTGRES_PASSWORD}"
@@ -23,7 +22,6 @@ SQLALCHEMY_DATABASE_URL_TEST = (
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL_TEST)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 
 from db.base import Base, get_db
 from main import app
@@ -48,9 +46,9 @@ def db_session() -> Generator[Session, Any, None]:
     transaction.rollback()
     connection.close()
 
+
 @pytest.fixture(scope="module")
 def client(db_session: Session) -> Generator[TestClient, Any, None]:
-
     def override_get_db() -> Generator[Session, Any, None]:
         yield db_session
 
@@ -59,11 +57,11 @@ def client(db_session: Session) -> Generator[TestClient, Any, None]:
         yield c
     app.dependency_overrides.clear()
 
+
 @pytest.fixture(scope="module")
 def auth_token(client: TestClient) -> str:
     test_email = "testuser@example.com"
     test_password = "testpassword"
-
 
     client.post(
         f"{settings.API_V1_STR}/auth/register",

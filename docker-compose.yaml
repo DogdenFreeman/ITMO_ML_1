@@ -1,3 +1,5 @@
+# project/docker-compose.yaml
+
 services:
   app:
     build:
@@ -16,7 +18,8 @@ services:
     networks:
       - backend_network
     volumes:
-      - ./app:/app
+      - ./app:/app # Оставляем для сервиса app
+
   web-proxy:
     image: nginx:1.25-alpine
     volumes:
@@ -56,10 +59,11 @@ services:
     restart: on-failure
     networks:
       - backend_network
+
   worker:
     build:
-      context: . # Контекст сборки - корень проекта
-      dockerfile: app/workers/Dockerfile # Путь к Dockerfile
+      context: .
+      dockerfile: app/workers/Dockerfile
     env_file:
       - .env
     depends_on:
@@ -68,7 +72,10 @@ services:
     networks:
       - backend_network
     volumes:
-      - ./app/workers:/app # монтируем только папку воркера
+      - ./app:/app # <--- ИСПРАВЛЕНО: Монтируем локальную папку ./app в /app контейнера worker
+
+    # Добавляем или изменяем команду запуска для воркера:
+    command: ["python", "workers/worker.py"] # <--- Новая команда запуска относительно WORKDIR /app
 
 volumes:
   db_data:

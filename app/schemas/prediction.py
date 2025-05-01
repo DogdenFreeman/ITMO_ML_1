@@ -1,13 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, Dict, Any, List
 import datetime
 
 
-
 class PredictionInputData(BaseModel):
-    qr_code_content: Optional[str] = None
-    feature1: float
-    feature2: str
+    lesson_id: int
 
 
 class PredictionCreate(BaseModel):
@@ -30,5 +27,4 @@ class PredictionRequest(BaseModel):
     timestamp_created: datetime.datetime
     timestamp_completed: Optional[datetime.datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

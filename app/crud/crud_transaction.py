@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import datetime
 
 from db.models.transaction import Transaction
 from db.models.user import User
@@ -36,9 +37,9 @@ def create_transaction(db: Session, *, user_id: int, amount: float, transaction_
         user_id=user_id,
         amount=amount,
         transaction_type=transaction_type,
-        prediction_request_id=prediction_request_id
+        prediction_request_id=prediction_request_id,
+        timestamp=datetime.datetime.now(datetime.timezone.utc)
     )
-    db.add(db_transaction)
-    db.commit()
-    db.refresh(db_transaction)
+    # Note: This function does not commit. The caller is responsible for committing.
+    # In crud_user.update_balance, Transaction objects are created and committed there.
     return db_transaction
